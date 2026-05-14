@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 namespace BlockchainAssignment
 {
@@ -27,11 +28,47 @@ namespace BlockchainAssignment
             return chain[chain.Count - 1];
         }
 
+        public List<Transaction> SelectTransactions(
+            List<Transaction> pool,
+            string mode,
+            string preferredAddress = ""
+        )
+        {
+            if (mode == "Greedy")
+            {
+                return pool.OrderByDescending(t => t.fee).ToList();
+            }
+
+            if (mode == "Altruistic")
+            {
+                return pool.OrderBy(t => t.timestamp).ToList();
+            }
+
+            if (mode == "Random")
+            {
+                Random rnd = new Random();
+
+                return pool.OrderBy(x => rnd.Next()).ToList();
+            }
+
+            if (mode == "AddressPreference")
+            {
+                return pool
+                    .OrderByDescending(t =>
+                        t.fromAddress == preferredAddress ||
+                        t.toAddress == preferredAddress)
+                    .ToList();
+            }
+
+            return pool;
+        }
+
         public double AddBlock(Block newBlock, string minerAddress)
         {
             newBlock.previousHash = GetLatestBlock().hash;
 
             Stopwatch stopwatch = new Stopwatch();
+
             stopwatch.Start();
 
             newBlock.MineBlock(difficulty);
@@ -48,11 +85,18 @@ namespace BlockchainAssignment
                 miningReward
             );
 
-            List<Transaction> rewardTransactions = new List<Transaction>();
+            List<Transaction> rewardTransactions =
+                new List<Transaction>();
+
             rewardTransactions.Add(rewardTransaction);
 
-            Block rewardBlock = new Block(chain.Count, rewardTransactions);
+            Block rewardBlock = new Block(
+                chain.Count,
+                rewardTransactions
+            );
+
             rewardBlock.previousHash = newBlock.hash;
+
             rewardBlock.MineBlock(difficulty);
 
             chain.Add(rewardBlock);
@@ -62,11 +106,14 @@ namespace BlockchainAssignment
 
         public void AdjustDifficulty(double miningTime)
         {
-            if (miningTime < targetBlockTime / 2 && difficulty < 6)
+            if (miningTime < targetBlockTime / 2 &&
+                difficulty < 6)
             {
                 difficulty++;
             }
-            else if (miningTime > targetBlockTime * 2 && difficulty > 1)
+
+            else if (miningTime > targetBlockTime * 2 &&
+                     difficulty > 1)
             {
                 difficulty--;
             }
@@ -79,17 +126,20 @@ namespace BlockchainAssignment
                 Block currentBlock = chain[i];
                 Block previousBlock = chain[i - 1];
 
-                if (currentBlock.hash != currentBlock.CalculateHash())
+                if (currentBlock.hash !=
+                    currentBlock.CalculateHash())
                 {
                     return false;
                 }
 
-                if (currentBlock.previousHash != previousBlock.hash)
+                if (currentBlock.previousHash !=
+                    previousBlock.hash)
                 {
                     return false;
                 }
 
-                foreach (Transaction transaction in currentBlock.transactions)
+                foreach (Transaction transaction
+                    in currentBlock.transactions)
                 {
                     if (!transaction.IsTransactionValid())
                     {
@@ -119,11 +169,13 @@ namespace BlockchainAssignment
 
             foreach (Block block in chain)
             {
-                foreach (Transaction transaction in block.transactions)
+                foreach (Transaction transaction
+                    in block.transactions)
                 {
                     if (transaction.fromAddress == address)
                     {
-                        balance -= transaction.amount;
+                        balance -= transaction.amount +
+                                   transaction.fee;
                     }
 
                     if (transaction.toAddress == address)

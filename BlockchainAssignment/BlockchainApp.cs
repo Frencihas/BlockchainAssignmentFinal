@@ -15,43 +15,77 @@ namespace BlockchainAssignment
         {
             Blockchain demoChain = new Blockchain();
 
-            string senderPrivateKey;
-            Wallet.Wallet senderWallet = new Wallet.Wallet(out senderPrivateKey);
+            string user1Private;
+            Wallet.Wallet user1 =
+                new Wallet.Wallet(out user1Private);
 
-            string receiverPrivateKey;
-            Wallet.Wallet receiverWallet = new Wallet.Wallet(out receiverPrivateKey);
+            string user2Private;
+            Wallet.Wallet user2 =
+                new Wallet.Wallet(out user2Private);
 
-            string minerPrivateKey;
-            Wallet.Wallet minerWallet = new Wallet.Wallet(out minerPrivateKey);
+            string minerPrivate;
+            Wallet.Wallet miner =
+                new Wallet.Wallet(out minerPrivate);
 
-            Transaction tx = new Transaction(
-                senderWallet.publicID,
-                receiverWallet.publicID,
-                25
-            );
+            Transaction tx1 =
+                new Transaction(
+                    user1.publicID,
+                    user2.publicID,
+                    20,
+                    5
+                );
 
-            tx.SignTransaction(senderPrivateKey);
+            Transaction tx2 =
+                new Transaction(
+                    user1.publicID,
+                    user2.publicID,
+                    15,
+                    1
+                );
 
-            List<Transaction> transactions = new List<Transaction>();
-            transactions.Add(tx);
+            Transaction tx3 =
+                new Transaction(
+                    user2.publicID,
+                    user1.publicID,
+                    30,
+                    10
+                );
 
-            Block transactionBlock = new Block(1, transactions);
+            tx1.SignTransaction(user1Private);
+            tx2.SignTransaction(user1Private);
+            tx3.SignTransaction(user2Private);
 
-            double miningTime = demoChain.AddBlock(
-                transactionBlock,
-                minerWallet.publicID
-            );
+            List<Transaction> pool =
+                new List<Transaction>();
+
+            pool.Add(tx1);
+            pool.Add(tx2);
+            pool.Add(tx3);
+
+            List<Transaction> selected =
+                demoChain.SelectTransactions(
+                    pool,
+                    "Greedy"
+                );
+
+            Block block =
+                new Block(1, selected);
+
+            double miningTime =
+                demoChain.AddBlock(
+                    block,
+                    miner.publicID
+                );
 
             richTextBox1.Text =
-                "FINAL BLOCKCHAIN DEMO\n\n" +
-                "Mining Time: " + miningTime.ToString("0.000") + " seconds" +
-                "\nCurrent Difficulty: " + demoChain.difficulty +
-                "\nTarget Block Time: " + demoChain.targetBlockTime + " seconds\n\n" +
+                "TRANSACTION PREFERENCE TEST\n\n" +
+                "Selection Mode: Greedy (Highest Fee First)\n\n" +
+                "Mining Time: " +
+                miningTime.ToString("0.000") +
+                " seconds\n\n" +
                 demoChain.ReadAllBlocks() +
-                "\nBlockchain Valid: " + demoChain.IsChainValid() +
-                "\n\nSender Balance: " + demoChain.GetBalance(senderWallet.publicID) +
-                "\nReceiver Balance: " + demoChain.GetBalance(receiverWallet.publicID) +
-                "\nMiner Balance: " + demoChain.GetBalance(minerWallet.publicID);
+                "\nBlockchain Valid: " +
+                demoChain.IsChainValid();
         }
     }
 }

@@ -61,7 +61,9 @@ namespace BlockchainAssignment
                 nonce.ToString() +
                 transactionData;
 
-            byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(rawData));
+            byte[] bytes = sha256.ComputeHash(
+                Encoding.UTF8.GetBytes(rawData)
+            );
 
             StringBuilder builder = new StringBuilder();
 
@@ -100,15 +102,16 @@ namespace BlockchainAssignment
 
                 foreach (Transaction transaction in transactions)
                 {
-                    output += "\nFrom: " + transaction.fromAddress;
-                    output += "\nTo: " + transaction.toAddress;
-                    output += "\nAmount: " + transaction.amount;
-                    output += "\nValid: " + transaction.IsTransactionValid();
-                    output += "\n";
+                    output +=
+                        "\n\nFrom: " + transaction.fromAddress +
+                        "\nTo: " + transaction.toAddress +
+                        "\nAmount: " + transaction.amount +
+                        "\nFee: " + transaction.fee +
+                        "\nValid: " + transaction.IsTransactionValid();
                 }
             }
 
-            output += "\n------------------------------\n";
+            output += "\n\n-----------------------------\n";
 
             return output;
         }
